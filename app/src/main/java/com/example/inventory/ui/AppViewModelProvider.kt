@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+// Paquete que contiene utilidades y configuraciones globales de la app.
 package com.example.inventory.ui
 
+
+// Importaciones necesarias para la creación de ViewModels y gestión de estado.
 import android.app.Application
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import androidx.lifecycle.createSavedStateHandle
@@ -29,40 +32,50 @@ import com.example.inventory.ui.item.ItemEditViewModel
 import com.example.inventory.ui.item.ItemEntryViewModel
 
 /**
- * Provides Factory to create instance of ViewModel for the entire Inventory app
+ * Objeto que proporciona una factoría de ViewModels para toda la aplicación.
+ *
+ * Utiliza la API moderna de viewModelFactory para inicializar ViewModels de forma centralizada
+ * y manejar la inyección de dependencias (repositorios) de forma sencilla.
  */
 object AppViewModelProvider {
     val Factory = viewModelFactory {
-        // Initializer for ItemEditViewModel
+        // Inicializador para ItemEditViewModel (Pantalla de Edición de Ítems)
         initializer {
             ItemEditViewModel(
-                this.createSavedStateHandle(),
-                inventoryApplication().container.itemsRepository
+                this.createSavedStateHandle(), // Proporciona SavedStateHandle para manejar estados persistentes.
+                inventoryApplication().container.itemsRepository // Inyección del repositorio de ítems.
             )
         }
-        // Initializer for ItemEntryViewModel
+
+        // Inicializador para ItemEntryViewModel (Pantalla de Creación de Ítems)
         initializer {
-            ItemEntryViewModel(inventoryApplication().container.itemsRepository)
+            ItemEntryViewModel(
+                inventoryApplication().container.itemsRepository // Inyección del repositorio de ítems.
+            )
         }
 
-        // Initializer for ItemDetailsViewModel
+        // Inicializador para ItemDetailsViewModel (Pantalla de Detalles de Ítems)
         initializer {
             ItemDetailsViewModel(
-                this.createSavedStateHandle(),
+                this.createSavedStateHandle(), // Permite recuperar argumentos de navegación seguros.
                 inventoryApplication().container.itemsRepository
             )
         }
 
-        // Initializer for HomeViewModel
+        // Inicializador para HomeViewModel (Pantalla Principal/Home)
         initializer {
-            HomeViewModel(inventoryApplication().container.itemsRepository)
+            HomeViewModel(
+                inventoryApplication().container.itemsRepository
+            )
         }
     }
 }
 
 /**
- * Extension function to queries for [Application] object and returns an instance of
- * [InventoryApplication].
+ * Función de extensión que permite acceder a la instancia de [InventoryApplication]
+ * desde CreationExtras.
+ *
+ * Esto facilita obtener el contenedor de dependencias configurado en la clase Application.
  */
 fun CreationExtras.inventoryApplication(): InventoryApplication =
     (this[AndroidViewModelFactory.APPLICATION_KEY] as InventoryApplication)

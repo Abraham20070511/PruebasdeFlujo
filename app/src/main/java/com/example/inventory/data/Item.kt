@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
+// Paquete donde se agrupan las clases relacionadas con los datos (modelo, base de datos, etc.)
 package com.example.inventory.data
 
 
 /**
- * Entity data class represents a single row in the database.
+ * Esta clase representa una entidad (tabla) en la base de datos.
+ * Cada instancia de esta clase representa una fila de la tabla "items".
  */
 
+import androidx.room.Entity // Anotación para definir una entidad Room
+import androidx.room.PrimaryKey // Anotación para indicar la clave primaria de la tabla
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
+// Anotación que marca esta clase como una tabla en la base de datos Room.
+// "items" será el nombre de la tabla en SQLite.
 @Entity(tableName = "items")
 data class Item(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val name: String,
-    val price: Double,
-    val quantity: Int
+    @PrimaryKey(autoGenerate = true) // Clave primaria que se autogenera
+    val id: Int = 0,                 // ID único de cada ítem (autoincremental)
+    val name: String,                // Nombre del producto
+    val price: Double,               // Precio del producto
+    val quantity: Int                // Cantidadenstock
 )

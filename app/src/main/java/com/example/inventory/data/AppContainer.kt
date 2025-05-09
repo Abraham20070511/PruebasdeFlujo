@@ -14,25 +14,37 @@
  * limitations under the License.
  */
 
+// Paquete de la capa de datos, encargado de la gestión de dependencias.
 package com.example.inventory.data
 
 import android.content.Context
 
 /**
- * App container for Dependency injection.
+ * Interfaz que define un contenedor de dependencias (Dependency Injection Container).
+ *
+ * Cualquier clase que implemente esta interfaz deberá proporcionar
+ * una instancia de [ItemsRepository].
  */
 interface AppContainer {
     val itemsRepository: ItemsRepository
 }
 
 /**
- * [AppContainer] implementation that provides instance of [OfflineItemsRepository]
+ * Implementación concreta de [AppContainer] que configura y proporciona
+ * las dependencias necesarias para la app, utilizando la implementación Offline (local).
+ *
+ * @param context Contexto de la aplicación, necesario para inicializar la base de datos Room.
  */
 class AppDataContainer(private val context: Context) : AppContainer {
+
     /**
-     * Implementation for [ItemsRepository]
+     * Implementación perezosa (lazy) de [ItemsRepository].
+     *
+     * - Se instancia una sola vez cuando es requerida por primera vez.
+     * - Usa la base de datos local [InventoryDatabase] y el DAO [ItemDao].
      */
     override val itemsRepository: ItemsRepository by lazy {
+        // Obtiene la instancia de la base de datos y su DAO para crear el repositorio offline.
         OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())
-    }
+        }
 }

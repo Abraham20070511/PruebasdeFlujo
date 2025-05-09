@@ -33,51 +33,67 @@ import com.example.inventory.ui.item.ItemEntryDestination
 import com.example.inventory.ui.item.ItemEntryScreen
 
 /**
- * Provides Navigation graph for the application.
+ * Esta función define el grafo de navegación principal de la app.
  */
 @Composable
 fun InventoryNavHost(
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
+    navController: NavHostController, // Controlador de navegación (lo recibe la función)
+    modifier: Modifier = Modifier,    // Modificador opcional para aplicar estilo al NavHost
 ) {
     NavHost(
-        navController = navController,
-        startDestination = HomeDestination.route,
-        modifier = modifier
+        navController = navController, // Controlador que maneja la navegación
+        startDestination = HomeDestination.route, // Ruta/pantalla inicial al abrir la app
+        modifier = modifier // Se aplica el modificador si se pasa
     ) {
+
+        // Pantalla principal de inicio (Home)
         composable(route = HomeDestination.route) {
             HomeScreen(
+                // Al pulsar "agregar nuevo ítem", navega a la pantalla de entrada
                 navigateToItemEntry = { navController.navigate(ItemEntryDestination.route) },
+                // Al pulsar un ítem existente, navega a la pantalla de detalles pasándole el ID
                 navigateToItemUpdate = {
                     navController.navigate("${ItemDetailsDestination.route}/${it}")
                 }
             )
         }
+
+        // Pantalla para crear un nuevo ítem
         composable(route = ItemEntryDestination.route) {
             ItemEntryScreen(
+                // Al pulsar "guardar" o "cancelar", vuelve a la pantalla anterior
                 navigateBack = { navController.popBackStack() },
+                // Al pulsar el botón "arriba" (flecha de retroceso), navega hacia atrás
                 onNavigateUp = { navController.navigateUp() }
             )
         }
+
+        // Pantalla de detalles del ítem seleccionado
         composable(
-            route = ItemDetailsDestination.routeWithArgs,
+            route = ItemDetailsDestination.routeWithArgs, // Ruta con argumentos (ID del ítem)
             arguments = listOf(navArgument(ItemDetailsDestination.itemIdArg) {
-                type = NavType.IntType
+                type = NavType.IntType // El argumento es un entero
             })
         ) {
             ItemDetailsScreen(
+                // Al pulsar "editar", navega a la pantalla de edición pasándole el ID
                 navigateToEditItem = { navController.navigate("${ItemEditDestination.route}/$it") },
+                // Al pulsar atrás, regresa
                 navigateBack = { navController.navigateUp() }
             )
         }
+
+        // Pantalla para editar un ítem existente
         composable(
-            route = ItemEditDestination.routeWithArgs,
+            route = ItemEditDestination.routeWithArgs, // Ruta con argumentos (ID del ítem)
             arguments = listOf(navArgument(ItemEditDestination.itemIdArg) {
-                type = NavType.IntType
+                type = NavType.IntType // El argumento es un entero
             })
         ) {
             ItemEditScreen(
+                // Al guardar o cancelar, vuelve a la pantalla anterior
                 navigateBack = { navController.popBackStack() },
+                // Al pulsar el botón "arriba", navega hacia atrás
                 onNavigateUp = { navController.navigateUp() }
             )
         }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// Paquete de la pantalla de detalles del ítem
 package com.example.inventory.ui.item
 
 import androidx.annotation.StringRes
@@ -66,57 +67,60 @@ import com.example.inventory.ui.navigation.NavigationDestination
 import com.example.inventory.ui.theme.InventoryTheme
 import kotlinx.coroutines.launch
 
+// Objeto que define la ruta y argumentos de navegación a la pantalla de detalles
 object ItemDetailsDestination : NavigationDestination {
-    override val route = "item_details"
-    override val titleRes = R.string.item_detail_title
-    const val itemIdArg = "itemId"
-    val routeWithArgs = "$route/{$itemIdArg}"
+    override val route = "item_details" // Ruta base
+    override val titleRes = R.string.item_detail_title // Título desde strings.xml
+    const val itemIdArg = "itemId" // Argumento requerido: ID del ítem
+    val routeWithArgs = "$route/{$itemIdArg}" // Ruta con argumento incluido
 }
 
+// Composable principal de la pantalla de detalles
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemDetailsScreen(
-    navigateToEditItem: (Int) -> Unit,
-    navigateBack: () -> Unit,
+    navigateToEditItem: (Int) -> Unit, // Función para navegar a la edición del ítem
+    navigateBack: () -> Unit, // Función para regresar
     modifier: Modifier = Modifier,
     viewModel: ItemDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // Obtenemos el estado actual del ViewModel como estado Compose
     val uiState = viewModel.uiState.collectAsState()
+    // CoroutineScope para operaciones asincrónicas como eliminar ítems
     val coroutineScope = rememberCoroutineScope()
+
+    // Scaffold con TopAppBar y FloatingActionButton
     Scaffold(
         topBar = {
             InventoryTopAppBar(
-                title = stringResource(ItemDetailsDestination.titleRes),
-                canNavigateBack = true,
-                navigateUp = navigateBack
+                title = stringResource(ItemDetailsDestination.titleRes), // Título de la pantalla
+                canNavigateBack = true, // Permite mostrar botón "atrás"
+                navigateUp = navigateBack // Acción al pulsar "atrás"
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigateToEditItem(uiState.value.itemDetails.id) },
+                onClick = { navigateToEditItem(uiState.value.itemDetails.id) }, // Va a la pantalla de edición
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                    .padding(
-                        end = WindowInsets.safeDrawing.asPaddingValues()
-                            .calculateEndPadding(LocalLayoutDirection.current)
-                    )
-
+                modifier = Modifier.padding(
+                    end = WindowInsets.safeDrawing.asPaddingValues()
+                        .calculateEndPadding(LocalLayoutDirection.current)
+                )
             ) {
                 Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.edit_item_title),
+                    imageVector = Icons.Default.Edit, // Ícono de edición
+                    contentDescription = stringResource(R.string.edit_item_title), // Accesibilidad
                 )
             }
-        }, modifier = modifier
+        },
+        modifier = modifier
     ) { innerPadding ->
+        // Cuerpo principal de la pantalla
         ItemDetailsBody(
             itemDetailsUiState = uiState.value,
-            onSellItem = { viewModel.reduceQuantityByOne() },
+            onSellItem = { viewModel.reduceQuantityByOne() }, // Disminuye cantidad en 1
             onDelete = {
-                // Note: If the user rotates the screen very fast, the operation may get cancelled
-                // and the item may not be deleted from the Database. This is because when config
-                // change occurs, the Activity will be recreated and the rememberCoroutineScope will
-                // be cancelled - since the scope is bound to composition.
+                // Lanza corrutina para eliminar el ítem y volver atrás
                 coroutineScope.launch {
                     viewModel.deleteItem()
                     navigateBack()
@@ -128,11 +132,12 @@ fun ItemDetailsScreen(
                     top = innerPadding.calculateTopPadding(),
                     end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
                 )
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()) // Scroll para el contenido
         )
     }
 }
 
+// Composable con los detalles del ítem, botones de acción y confirmación de borrado
 @Composable
 private fun ItemDetailsBody(
     itemDetailsUiState: ItemDetailsUiState,
@@ -144,12 +149,16 @@ private fun ItemDetailsBody(
         modifier = modifier.padding(dimensionResource(id = R.dimen.padding_medium)),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
     ) {
+        // Variable para mostrar o no el cuadro de confirmación
         var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
 
+        // Componente que muestra los datos del ítem
         ItemDetails(
             item = itemDetailsUiState.itemDetails.toItem(),
             modifier = Modifier.fillMaxWidth()
         )
+
+        // Botón para vender (disminuir en 1 la cantidad)
         Button(
             onClick = onSellItem,
             modifier = Modifier.fillMaxWidth(),
@@ -158,6 +167,8 @@ private fun ItemDetailsBody(
         ) {
             Text(stringResource(R.string.sell))
         }
+
+        // Botón para solicitar borrar el ítem
         OutlinedButton(
             onClick = { deleteConfirmationRequired = true },
             shape = MaterialTheme.shapes.small,
@@ -165,6 +176,8 @@ private fun ItemDetailsBody(
         ) {
             Text(stringResource(R.string.delete))
         }
+
+        // Diálogo de confirmación de eliminación
         if (deleteConfirmationRequired) {
             DeleteConfirmationDialog(
                 onDeleteConfirm = {
@@ -178,6 +191,7 @@ private fun ItemDetailsBody(
     }
 }
 
+// Composable que muestra la tarjeta con detalles del ítem (nombre, cantidad, precio)
 @Composable
 fun ItemDetails(
     item: Item, modifier: Modifier = Modifier
@@ -197,64 +211,66 @@ fun ItemDetails(
                 dimensionResource(id = R.dimen.padding_medium)
             )
         ) {
+            // Fila con el nombre del producto
             ItemDetailsRow(
                 labelResID = R.string.item,
                 itemDetail = item.name,
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(id = R.dimen.padding_medium)
-                )
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_medium))
             )
+            // Fila con la cantidad
             ItemDetailsRow(
                 labelResID = R.string.quantity_in_stock,
                 itemDetail = item.quantity.toString(),
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(id = R.dimen.padding_medium)
-                )
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_medium))
             )
+            // Fila con el precio
             ItemDetailsRow(
                 labelResID = R.string.price,
                 itemDetail = item.formatedPrice(),
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(id = R.dimen.padding_medium)
-                )
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_medium))
             )
         }
     }
 }
 
+// Fila para mostrar una etiqueta (label) y un dato (detalle)
 @Composable
 private fun ItemDetailsRow(
     @StringRes labelResID: Int, itemDetail: String, modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier) {
-        Text(stringResource(labelResID))
-        Spacer(modifier = Modifier.weight(1f))
-        Text(text = itemDetail, fontWeight = FontWeight.Bold)
+        Text(stringResource(labelResID)) // Etiqueta
+        Spacer(modifier = Modifier.weight(1f)) // Espacio entre ambos textos
+        Text(text = itemDetail, fontWeight = FontWeight.Bold) // Valor en negrita
     }
 }
 
+// Diálogo de alerta para confirmar eliminación del ítem
 @Composable
 private fun DeleteConfirmationDialog(
     onDeleteConfirm: () -> Unit,
     onDeleteCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AlertDialog(onDismissRequest = { /* Do nothing */ },
-        title = { Text(stringResource(R.string.attention)) },
-        text = { Text(stringResource(R.string.delete_question)) },
+    AlertDialog(
+        onDismissRequest = { /* Nada, se requiere acción explícita */ },
+        title = { Text(stringResource(R.string.attention)) }, // Título del diálogo
+        text = { Text(stringResource(R.string.delete_question)) }, // Pregunta de confirmación
         modifier = modifier,
         dismissButton = {
             TextButton(onClick = onDeleteCancel) {
-                Text(stringResource(R.string.no))
+                Text(stringResource(R.string.no)) // Botón para cancelar
             }
         },
         confirmButton = {
             TextButton(onClick = onDeleteConfirm) {
-                Text(stringResource(R.string.yes))
+                Text(stringResource(R.string.yes)) // Botón para confirmar
             }
-        })
+        }
+    )
 }
 
+// Vista previa en modo diseño (no funcional)
 @Preview(showBackground = true)
 @Composable
 fun ItemDetailsScreenPreview() {
@@ -262,10 +278,10 @@ fun ItemDetailsScreenPreview() {
         ItemDetailsBody(
             ItemDetailsUiState(
                 outOfStock = true,
-                itemDetails = ItemDetails(1, "Pen", "$100", "10")
+                itemDetails = ItemDetails(1, "Pen", "$100", "10") // Datos de ejemplo
             ),
-            onSellItem = {},
+            onSellItem = {}, // Acciones vacías
             onDelete = {}
-        )
-    }
+            )
+        }
 }

@@ -26,28 +26,37 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
- * ViewModel to retrieve all items in the Room database.
+ * ViewModel encargado de recuperar todos los ítems almacenados en la base de datos Room.
+ * Proporciona el estado necesario para la UI de la pantalla de inicio (Home).
  */
 class HomeViewModel(itemsRepository: ItemsRepository) : ViewModel() {
 
     /**
-     * Holds home ui state. The list of items are retrieved from [ItemsRepository] and mapped to
-     * [HomeUiState]
+     * Estado observable de la UI de la pantalla Home.
+     *
+     * - Recupera la lista de ítems desde ItemsRepository como un Flow.
+     * - Mapea esa lista al objeto HomeUiState.
+     * - stateIn convierte el Flow en StateFlow para mantener el último estado emitido,
+     *   ideal para su uso con Jetpack Compose.
      */
     val homeUiState: StateFlow<HomeUiState> =
-        itemsRepository.getAllItemsStream().map { HomeUiState(it) }
+        itemsRepository.getAllItemsStream() // Flujo de datos de la base de datos.
+            .map { HomeUiState(it) } // Mapea la lista de ítems a un objeto HomeUiState.
             .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-                initialValue = HomeUiState()
+                scope = viewModelScope, // El ciclo de vida del flujo está vinculado al ViewModel.
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), // Mantiene activo el flujo 5 segundos tras la última suscripción.
+                initialValue = HomeUiState() // Valor inicial: lista vacía.
             )
 
     companion object {
-        private const val TIMEOUT_MILLIS = 5_000L
+        // Tiempo en milisegundos que se mantendrá activo el flujo después de perder suscriptores.
+        private const val TIMEOUT_MILLIS = 5_000L // 5 segundos.
     }
 }
 
 /**
- * Ui State for HomeScreen
+ * Modelo de estado de la UI para la pantalla Home.
+ *
+ * @param itemList Lista de productos a mostrar. Por defecto, la lista está vacía.
  */
 data class HomeUiState(val itemList: List<Item> = listOf())

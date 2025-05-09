@@ -14,36 +14,58 @@
  * limitations under the License.
  */
 
+// Paquete de la capa de datos, donde se definen entidades, DAOs y repositorios.
 package com.example.inventory.data
 
+// Importa Flow de Kotlin Coroutines para manejar flujos de datos reactivos.
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Repository that provides insert, update, delete, and retrieve of [Item] from a given data source.
+ * Interfaz que define las operaciones básicas para administrar los ítems de inventario.
+ *
+ * Proporciona métodos para:
+ * - Insertar
+ * - Actualizar
+ * - Eliminar
+ * - Consultar (individual o lista completa)
+ *
+ * Esta interfaz permite desacoplar la lógica de acceso a datos de la lógica de la UI o ViewModels.
  */
 interface ItemsRepository {
+
     /**
-     * Retrieve all the items from the the given data source.
+     * Recupera todos los ítems de la fuente de datos como un flujo reactivo (Flow).
+     *
+     * @return Flow que emite actualizaciones con la lista de ítems en tiempo real.
      */
     fun getAllItemsStream(): Flow<List<Item>>
 
     /**
-     * Retrieve an item from the given data source that matches with the [id].
+     * Recupera un ítem específico a partir de su ID.
+     *
+     * @param id Identificador único del ítem.
+     * @return Flow que emite actualizaciones con el ítem correspondiente, o null si no existe.
      */
     fun getItemStream(id: Int): Flow<Item?>
 
     /**
-     * Insert item in the data source
+     * Inserta un nuevo ítem en la fuente de datos.
+     *
+     * @param item Objeto Item que se desea insertar.
      */
     suspend fun insertItem(item: Item)
 
     /**
-     * Delete item from the data source
+     * Elimina un ítem de la fuente de datos.
+     *
+     * @param item Objeto Item que se desea eliminar.
      */
     suspend fun deleteItem(item: Item)
 
     /**
-     * Update item in the data source
+     * Actualiza un ítem existente en la fuente de datos.
+     *
+     * @param item Objeto Item con los nuevos datos actualizados.
      */
-    suspend fun updateItem(item: Item)
+    suspend fun updateItem(item:Item)
 }

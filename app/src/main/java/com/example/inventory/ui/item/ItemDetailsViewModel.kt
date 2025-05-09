@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// Paquete correspondiente a la gestión de la lógica y estado de la pantalla de detalles de ítems.
 package com.example.inventory.ui.item
 
 import androidx.lifecycle.SavedStateHandle
@@ -28,58 +29,72 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel to retrieve, update and delete an item from the [ItemsRepository]'s data source.
+ * ViewModel responsable de recuperar, actualizar y eliminar un ítem
+ * desde la fuente de datos proporcionada por [ItemsRepository].
  */
 class ItemDetailsViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val itemsRepository: ItemsRepository,
+    savedStateHandle: SavedStateHandle,              // Permite recuperar parámetros de navegación de forma segura.
+    private val itemsRepository: ItemsRepository     // Repositorio de acceso a la base de datos.
 ) : ViewModel() {
 
+    // Recupera el ID del ítem desde los argumentos de navegación.
     private val itemId: Int = checkNotNull(savedStateHandle[ItemDetailsDestination.itemIdArg])
 
     /**
-     * Holds the item details ui state. The data is retrieved from [ItemsRepository] and mapped to
-     * the UI state.
+     * Estado observable de la UI de la pantalla de detalles.
+     *
+     * - Obtiene el ítem desde el repositorio como un Flow.
+     * - Lo transforma en un objeto [ItemDetailsUiState].
+     * - Usa StateFlow para mantener el estado actual.
      */
     val uiState: StateFlow<ItemDetailsUiState> =
-        itemsRepository.getItemStream(itemId)
-            .filterNotNull()
-            .map {
-                ItemDetailsUiState(outOfStock = it.quantity <= 0, itemDetails = it.toItemDetails())
+        itemsRepository.getItemStream(itemId)    // Recupera el flujo de datos del ítem.
+            .filterNotNull()                     // Filtra nulos (en caso de que no exista el ítem).
+            .map { item ->
+                ItemDetailsUiState(
+                    outOfStock = item.quantity <= 0, // Evalúa si el producto está agotado.
+                    itemDetails = item.toItemDetails() // Convierte a un modelo amigable para la UI.
+                )
             }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-                initialValue = ItemDetailsUiState()
+                scope = viewModelScope,                   // Ciclo de vida del flujo ligado al ViewModel.
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), // Mantiene el flujo activo por 5 seg tras perder suscriptores.
+                initialValue = ItemDetailsUiState()       // Valor inicial por defecto.
             )
 
     /**
-     * Reduces the item quantity by one and update the [ItemsRepository]'s data source.
+     * Reduce en uno la cantidad del producto, y actualiza la base de datos.
+     *
+     * Si la cantidad ya es 0, no realiza ningún cambio.
      */
     fun reduceQuantityByOne() {
         viewModelScope.launch {
-            val currentItem = uiState.value.itemDetails.toItem()
+            val currentItem = uiState.value.itemDetails.toItem() // Recupera el ítem actual.
             if (currentItem.quantity > 0) {
+                // Actualiza la base de datos restando 1 a la cantidad.
                 itemsRepository.updateItem(currentItem.copy(quantity = currentItem.quantity - 1))
             }
         }
     }
 
     /**
-     * Deletes the item from the [ItemsRepository]'s data source.
+     * Elimina el ítem actual de la base de datos.
      */
     suspend fun deleteItem() {
         itemsRepository.deleteItem(uiState.value.itemDetails.toItem())
     }
 
     companion object {
-        private const val TIMEOUT_MILLIS = 5_000L
+        private const val TIMEOUT_MILLIS = 5_000L // Tiempo en milisegundos para mantener activo el flujo tras perder suscriptores.
     }
 }
 
 /**
- * UI state for ItemDetailsScreen
+ * Modelo de estado de la UI para la pantalla de detalles de un ítem.
+ *
+ * @param outOfStock Indica si el producto está agotado.
+ * @param itemDetails Detalles del producto mostrados en la UI.
  */
 data class ItemDetailsUiState(
     val outOfStock: Boolean = true,
-    val itemDetails: ItemDetails = ItemDetails()
+    val itemDetails: ItemDetails =ItemDetails()
 )

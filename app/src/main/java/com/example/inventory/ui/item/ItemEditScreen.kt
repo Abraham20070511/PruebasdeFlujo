@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// Paquete que agrupa las pantallas relacionadas con ítems
 package com.example.inventory.ui.item
 
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -37,52 +38,59 @@ import com.example.inventory.ui.navigation.NavigationDestination
 import com.example.inventory.ui.theme.InventoryTheme
 import kotlinx.coroutines.launch
 
+// Objeto que define la navegación hacia la pantalla de edición de ítems
 object ItemEditDestination : NavigationDestination {
-    override val route = "item_edit"
-    override val titleRes = R.string.edit_item_title
-    const val itemIdArg = "itemId"
-    val routeWithArgs = "$route/{$itemIdArg}"
+    override val route = "item_edit" // Ruta base
+    override val titleRes = R.string.edit_item_title // Título de la pantalla (desde strings.xml)
+    const val itemIdArg = "itemId" // Argumento requerido: ID del ítem a editar
+    val routeWithArgs = "$route/{$itemIdArg}" // Ruta incluyendo el argumento
 }
 
+// Función principal que construye la pantalla de edición de un ítem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemEditScreen(
-    navigateBack: () -> Unit,
-    onNavigateUp: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: ItemEditViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    navigateBack: () -> Unit, // Acción para volver atrás
+    onNavigateUp: () -> Unit, // Acción del botón "arriba" del AppBar
+    modifier: Modifier = Modifier, // Modificador externo opcional
+    viewModel: ItemEditViewModel = viewModel(factory = AppViewModelProvider.Factory) // ViewModel para manejar el estado
 ) {
+    // Corrutina para tareas como guardar datos
     val coroutineScope = rememberCoroutineScope()
+
+    // Scaffold que contiene barra superior y contenido central
     Scaffold(
         topBar = {
             InventoryTopAppBar(
-                title = stringResource(ItemEditDestination.titleRes),
-                canNavigateBack = true,
-                navigateUp = onNavigateUp
+                title = stringResource(ItemEditDestination.titleRes), // Título de la pantalla
+                canNavigateBack = true, // Muestra botón de navegación atrás
+                navigateUp = onNavigateUp // Acción al pulsar el botón atrás
             )
         },
         modifier = modifier
     ) { innerPadding ->
+        // Cuerpo del formulario de edición
         ItemEntryBody(
-            itemUiState = viewModel.itemUiState,
-            onItemValueChange = viewModel::updateUiState,
+            itemUiState = viewModel.itemUiState, // Estado del formulario
+            onItemValueChange = viewModel::updateUiState, // Función para actualizar los datos al editar
             onSaveClick = {
                 coroutineScope.launch {
-                    viewModel.updateItem()
-                    navigateBack()
+                    viewModel.updateItem() // Llama a la función para guardar cambios
+                    navigateBack() // Regresa a la pantalla anterior
                 }
             },
             modifier = Modifier
-                .padding(
+                .padding( // Padding interior según el layout actual
                     start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
                     top = innerPadding.calculateTopPadding(),
                     end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
                 )
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()) // Permite hacer scroll si el contenido es largo
         )
     }
 }
 
+// Vista previa de diseño de la pantalla de edición (solo para ver en el editor)
 @Preview(showBackground = true)
 @Composable
 fun ItemEditScreenPreview() {

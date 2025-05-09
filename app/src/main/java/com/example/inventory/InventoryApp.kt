@@ -35,34 +35,38 @@ import com.example.inventory.R.string
 import com.example.inventory.ui.navigation.InventoryNavHost
 
 /**
- * Top level composable that represents screens for the application.
+ * Composable principal de la app.
+ * Contiene el NavHost, que maneja la navegación entre pantallas.
  */
 @Composable
 fun InventoryApp(navController: NavHostController = rememberNavController()) {
+    // Llama a la función InventoryNavHost pasando el navController
     InventoryNavHost(navController = navController)
 }
 
 /**
- * App bar to display title and conditionally display the back navigation.
+ * AppBar personalizado que muestra un título centrado y, si se puede navegar atrás,
+ * muestra un botón de "volver" con una flecha.
  */
 @Composable
 fun InventoryTopAppBar(
-    title: String,
-    canNavigateBack: Boolean,
-    modifier: Modifier = Modifier,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    navigateUp: () -> Unit = {}
+    title: String, // Título que se mostrará en el AppBar
+    canNavigateBack: Boolean, // Indica si se debe mostrar el botón de "volver"
+    modifier: Modifier = Modifier, // Modificador opcional para personalizar el AppBar
+    scrollBehavior: TopAppBarScrollBehavior? = null, // Comportamiento de scroll (puede ser nulo)
+    navigateUp: () -> Unit = {} // Acción que se ejecuta al presionar el botón de "volver"
 ) {
     CenterAlignedTopAppBar(
-        title = { Text(title) },
-        modifier = modifier,
-        scrollBehavior = scrollBehavior,
+        title = { Text(title) }, // Muestra el título en el centro
+        modifier = modifier, // Aplica el modificador si se pasa
+        scrollBehavior = scrollBehavior, // Aplica el comportamiento de scroll (si existe)
         navigationIcon = {
+            // Solo muestra el botón de "volver" si canNavigateBack es true
             if (canNavigateBack) {
                 IconButton(onClick = navigateUp) {
                     Icon(
-                        imageVector = Filled.ArrowBack,
-                        contentDescription = stringResource(string.back_button)
+                        imageVector = Filled.ArrowBack, // Usa el ícono de flecha hacia atrás
+                        contentDescription = stringResource(string.back_button) // Descripción accesible del botón
                     )
                 }
             }

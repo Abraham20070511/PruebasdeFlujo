@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// Paquete de la pantalla de entrada (creación) de ítems.
 package com.example.inventory.ui.item
 
 import androidx.compose.foundation.layout.Arrangement
@@ -50,20 +51,25 @@ import kotlinx.coroutines.launch
 import java.util.Currency
 import java.util.Locale
 
+// Objeto que define la navegación hacia la pantalla de registro de ítems.
 object ItemEntryDestination : NavigationDestination {
     override val route = "item_entry"
     override val titleRes = R.string.item_entry_title
 }
 
+/**
+ * Pantalla de entrada de nuevos ítems. Incluye un formulario y botón de guardado.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemEntryScreen(
-    navigateBack: () -> Unit,
-    onNavigateUp: () -> Unit,
-    canNavigateBack: Boolean = true,
+    navigateBack: () -> Unit,            // Función para volver atrás tras guardar.
+    onNavigateUp: () -> Unit,             // Función del botón "arriba" en la AppBar.
+    canNavigateBack: Boolean = true,      // Indica si se permite la navegación hacia atrás.
     viewModel: ItemEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope() // Corrutina para operaciones asíncronas.
+
     Scaffold(
         topBar = {
             InventoryTopAppBar(
@@ -74,12 +80,12 @@ fun ItemEntryScreen(
         }
     ) { innerPadding ->
         ItemEntryBody(
-            itemUiState = viewModel.itemUiState,
-            onItemValueChange = viewModel::updateUiState,
+            itemUiState = viewModel.itemUiState, // Estado actual del formulario.
+            onItemValueChange = viewModel::updateUiState, // Actualización del estado.
             onSaveClick = {
                 coroutineScope.launch {
-                    viewModel.saveItem()
-                    navigateBack()
+                    viewModel.saveItem() // Guarda en la base de datos.
+                    navigateBack()       // Vuelve a la pantalla anterior.
                 }
             },
             modifier = Modifier.padding(innerPadding)
@@ -87,6 +93,9 @@ fun ItemEntryScreen(
     }
 }
 
+/**
+ * Cuerpo de la pantalla que contiene el formulario de entrada y el botón de guardado.
+ */
 @Composable
 fun ItemEntryBody(
     itemUiState: ItemUiState,
@@ -97,7 +106,7 @@ fun ItemEntryBody(
     Column(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large)),
         modifier = modifier.padding(dimensionResource(id = R.dimen.padding_medium))
-        ) {
+    ) {
         ItemInputForm(
             itemDetails = itemUiState.itemDetails,
             onValueChange = onItemValueChange,
@@ -105,7 +114,7 @@ fun ItemEntryBody(
         )
         Button(
             onClick = onSaveClick,
-            enabled = itemUiState.isEntryValid,
+            enabled = itemUiState.isEntryValid, // Solo se activa si los datos son válidos.
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -114,6 +123,9 @@ fun ItemEntryBody(
     }
 }
 
+/**
+ * Formulario con los campos de entrada para el nombre, precio y cantidad del ítem.
+ */
 @Composable
 fun ItemInputForm(
     itemDetails: ItemDetails,
@@ -125,6 +137,7 @@ fun ItemInputForm(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
     ) {
+        // Campo: Nombre del producto
         OutlinedTextField(
             value = itemDetails.name,
             onValueChange = { onValueChange(itemDetails.copy(name = it)) },
@@ -138,25 +151,27 @@ fun ItemInputForm(
             enabled = enabled,
             singleLine = true
         )
+        // Campo: Precio del producto
         OutlinedTextField(
             value = itemDetails.price,
             onValueChange = { onValueChange(itemDetails.copy(price = it)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), // Solo permite decimales.
             label = { Text(stringResource(R.string.item_price_req)) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                 unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                 disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
             ),
-            leadingIcon = { Text(Currency.getInstance(Locale.getDefault()).symbol) },
+            leadingIcon = { Text(Currency.getInstance(Locale.getDefault()).symbol) }, // Símbolo de la moneda local.
             modifier = Modifier.fillMaxWidth(),
             enabled = enabled,
             singleLine = true
         )
+        // Campo: Cantidad del producto
         OutlinedTextField(
             value = itemDetails.quantity,
             onValueChange = { onValueChange(itemDetails.copy(quantity = it)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Solo permite números.
             label = { Text(stringResource(R.string.quantity_req)) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -168,6 +183,7 @@ fun ItemInputForm(
             singleLine = true
         )
         if (enabled) {
+            // Mensaje informativo sobre los campos requeridos.
             Text(
                 text = stringResource(R.string.required_fields),
                 modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
@@ -176,14 +192,19 @@ fun ItemInputForm(
     }
 }
 
+/**
+ * Vista previa del formulario de entrada con valores predefinidos.
+ */
 @Preview(showBackground = true)
 @Composable
 private fun ItemEntryScreenPreview() {
     InventoryTheme {
-        ItemEntryBody(itemUiState = ItemUiState(
-            ItemDetails(
-                name = "Item name", price = "10.00", quantity = "5"
+        ItemEntryBody(
+            itemUiState = ItemUiState(
+                ItemDetails(name = "Item name", price = "10.00", quantity = "5")
+            ),
+            onItemValueChange = {},
+            onSaveClick = {}
             )
-        ), onItemValueChange = {}, onSaveClick = {})
-    }
+        }
 }

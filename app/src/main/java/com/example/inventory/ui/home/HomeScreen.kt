@@ -63,47 +63,53 @@ import com.example.inventory.ui.item.formatedPrice
 import com.example.inventory.ui.navigation.NavigationDestination
 import com.example.inventory.ui.theme.InventoryTheme
 
+// Objeto que define la configuración de navegación hacia la pantalla Home
 object HomeDestination : NavigationDestination {
-    override val route = "home"
-    override val titleRes = R.string.app_name
+    override val route = "home" // Ruta de navegación
+    override val titleRes = R.string.app_name // Título mostrado en la barra superior
 }
 
 /**
- * Entry route for Home screen
+ * Pantalla principal (HomeScreen) que muestra la lista de productos.
+ * Incluye un botón para añadir nuevos ítems y permite navegar a editar ítems existentes.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navigateToItemEntry: () -> Unit,
-    navigateToItemUpdate: (Int) -> Unit,
+    navigateToItemEntry: () -> Unit, // Acción al presionar FAB (añadir ítem)
+    navigateToItemUpdate: (Int) -> Unit, // Acción al seleccionar un ítem (editar)
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // Obtenemos el estado de la UI (lista de productos)
     val homeUiState by viewModel.homeUiState.collectAsState()
+    // Configuración de la barra superior con scroll dinámico
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
+    // Scaffold organiza la estructura de la pantalla (TopBar, FAB, Contenido)
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Soporta scroll del AppBar
         topBar = {
             InventoryTopAppBar(
-                title = stringResource(HomeDestination.titleRes),
-                canNavigateBack = false,
+                title = stringResource(HomeDestination.titleRes), // Título de la app
+                canNavigateBack = false, // No muestra botón de "atrás"
                 scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = navigateToItemEntry,
+                onClick = navigateToItemEntry, // Acción para crear un nuevo ítem
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.item_entry_title)
+                    imageVector = Icons.Default.Add, // Ícono de suma "+"
+                    contentDescription = stringResource(R.string.item_entry_title) // Accesibilidad
                 )
             }
         },
     ) { innerPadding ->
+        // Cuerpo de la pantalla que muestra la lista de ítems o un mensaje si está vacía
         HomeBody(
             itemList = homeUiState.itemList,
             onItemClick = navigateToItemUpdate,
@@ -112,10 +118,14 @@ fun HomeScreen(
     }
 }
 
+/**
+ * Cuerpo principal de la pantalla.
+ * Muestra la lista de ítems o un mensaje si no hay productos en stock.
+ */
 @Composable
 private fun HomeBody(
-    itemList: List<Item>,
-    onItemClick: (Int) -> Unit,
+    itemList: List<Item>, // Lista de productos a mostrar
+    onItemClick: (Int) -> Unit, // Acción al hacer clic en un ítem
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -124,6 +134,7 @@ private fun HomeBody(
         modifier = modifier,
     ) {
         if (itemList.isEmpty()) {
+            // Si no hay productos, mostrar mensaje informativo
             Text(
                 text = stringResource(R.string.no_item_description),
                 textAlign = TextAlign.Center,
@@ -131,9 +142,10 @@ private fun HomeBody(
                 modifier = Modifier.padding(contentPadding),
             )
         } else {
+            // Mostrar la lista de productos
             InventoryList(
                 itemList = itemList,
-                onItemClick = { onItemClick(it.id) },
+                onItemClick = { onItemClick(it.id) }, // Llama al callback pasando el ID del ítem
                 contentPadding = contentPadding,
                 modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_small))
             )
@@ -141,6 +153,9 @@ private fun HomeBody(
     }
 }
 
+/**
+ * Muestra la lista de productos usando LazyColumn para mejor rendimiento.
+ */
 @Composable
 private fun InventoryList(
     itemList: List<Item>,
@@ -152,72 +167,94 @@ private fun InventoryList(
         modifier = modifier,
         contentPadding = contentPadding
     ) {
+        // Por cada producto, se dibuja un InventoryItem
         items(items = itemList, key = { it.id }) { item ->
-            InventoryItem(item = item,
+            InventoryItem(
+                item = item,
                 modifier = Modifier
                     .padding(dimensionResource(id = R.dimen.padding_small))
-                    .clickable { onItemClick(item) })
+                    .clickable { onItemClick(item) } // Al hacer clic, llama al callback
+            )
         }
     }
 }
 
+/**
+ * Muestra la tarjeta de un producto individual (nombre, precio y stock).
+ */
 @Composable
 private fun InventoryItem(
-    item: Item, modifier: Modifier = Modifier
+    item: Item,
+    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Elevación de la tarjeta
     ) {
         Column(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth() // Fila para nombre y precio
             ) {
                 Text(
-                    text = item.name,
+                    text = item.name, // Nombre del producto
                     style = MaterialTheme.typography.titleLarge,
                 )
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f)) // Espacio flexible entre textos
                 Text(
-                    text = item.formatedPrice(),
+                    text = item.formatedPrice(), // Precio formateado (ej. $100.00)
                     style = MaterialTheme.typography.titleMedium
                 )
             }
             Text(
-                text = stringResource(R.string.in_stock, item.quantity),
+                text = stringResource(R.string.in_stock, item.quantity), // Muestra la cantidad disponible
                 style = MaterialTheme.typography.titleMedium
             )
         }
     }
 }
 
+//////////////////////////
+// PREVIEWS PARA DISEÑO //
+//////////////////////////
+
+// Vista previa de la Home con productos cargados
 @Preview(showBackground = true)
 @Composable
 fun HomeBodyPreview() {
     InventoryTheme {
-        HomeBody(listOf(
-            Item(1, "Game", 100.0, 20), Item(2, "Pen", 200.0, 30), Item(3, "TV", 300.0, 50)
-        ), onItemClick = {})
+        HomeBody(
+            listOf(
+                Item(1, "Game", 100.0, 20),
+                Item(2, "Pen", 200.0, 30),
+                Item(3, "TV", 300.0, 50)
+            ),
+            onItemClick = {}
+        )
     }
 }
 
+// Vista previa de la Home sin productos (lista vacía)
 @Preview(showBackground = true)
 @Composable
 fun HomeBodyEmptyListPreview() {
     InventoryTheme {
-        HomeBody(listOf(), onItemClick = {})
+        HomeBody(
+            listOf(),
+            onItemClick = {}
+        )
     }
 }
 
+// Vista previa de un solo producto en su tarjeta
 @Preview(showBackground = true)
 @Composable
 fun InventoryItemPreview() {
     InventoryTheme {
         InventoryItem(
             Item(1, "Game", 100.0, 20),
-        )
-    }
+            )
+        }
 }

@@ -20,15 +20,18 @@ import android.app.Application
 import com.example.inventory.data.AppContainer
 import com.example.inventory.data.AppDataContainer
 
+// Clase que extiende de Application y se usa para inicializar componentes globales
 class InventoryApplication : Application() {
 
     /**
-     * AppContainer instance used by the rest of classes to obtain dependencies
+     * Instancia de AppContainer que será usada por el resto de las clases
+     * para acceder a las dependencias (repositorios, fuentes de datos, etc.).
      */
-    lateinit var container: AppContainer
+    lateinit var container: AppContainer // Se declara como lateinit porque se inicializa en onCreate
 
+    // Se llama cuando la aplicación se inicia por primera vez
     override fun onCreate() {
-        super.onCreate()
-        container = AppDataContainer(this)
+        super.onCreate() // Llama a la implementación base
+        container = AppDataContainer(this) // Inicializa el contenedor con el contexto de la aplicación
     }
 }
